@@ -1,0 +1,16 @@
+{
+  "name": "monitor",
+  "version": "1.0.0",
+  "description": "Fx-monitor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^6.1.0",
+    "node-schedule": "^1.3.0",
+    "request": "^2.88.0"
+  }
+}
