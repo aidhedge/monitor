@@ -12,6 +12,9 @@
         <h3>
             AH Websockets
         </h3>
+        <div><input type="text" v-model="url" style="width:60%"></div> 
+        <button v-if="status === 'No connection'" @click="connect">Connect</button>
+        <button v-if="status === 'Connected'" @click="close">Close</button>
         <div>{{status}}</div>
         <hr>
         <div v-for="(sub, index) in subscriptions">
@@ -36,13 +39,14 @@
         new Vue({
             el: '#app',
             data: {
-                status: 'Not connected',
+                url:'http://ec2-34-213-80-164.us-west-2.compute.amazonaws.com:3000/',
+                status: 'No connection',
                 socket: null,
                 channel: null,
                 subscriptions: []
             },
             mounted: function () {
-                this.init();
+                //this.init();
             },
             methods: {
                 unsubscribe: function (index, channel) {
@@ -66,9 +70,14 @@
                     this.socket.emit('subscribe', this.channel.toUpperCase());
                     this.channel = null;
                 },
-                init: function () {
+                close: function(){
+                    this.socket.close();
+                    this.status = 'No connection';
+                },
+                connect: function () {
                     var self = this;
-                    this.socket = io("http://localhost:3000");
+                    //this.socket = io("http://localhost:3000");
+                    this.socket = io(this.url);
                     this.socket.on("connected", (res) => {
                         if (res.status) {
                             self.status = 'Connected'
