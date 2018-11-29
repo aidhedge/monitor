@@ -1,16 +1,99 @@
 <html>
-    <head>
-        <title>Socket io client</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.dev.js"></script>
-        <script>
-            var socket = io("http://localhost:3000");
-            // use your socket
-            socket.on("welcome", (message) => {
-                console.log(message)
-            })
-        </script>
-    </head>
-    <body>
-        Ah Websockts
-    </body>
+
+<head>
+    <title>Socket io client</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.dev.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <h3>
+            AH Websockets
+        </h3>
+        <div>{{status}}</div>
+        <hr>
+        <div v-for="(sub, index) in subscriptions">
+            <span>{{sub.channel}}</span>
+            <span style="margin-left:20px">{{sub.quote}}</span>
+            <span style="margin-left:20px">Timestamp: {{sub.timestamp}}</span>
+            <span><button @click="unsubscribe(index, sub.channel)">Remove</button></span>
+        </div>
+        <hr>
+        <div>
+            <input type="text" v-model="channel">
+            <button @click="subscribe">Subscribe</button>
+        </div>
+    </div>
+    <script>
+        function getTIMESTAMP(timestamp) {
+            var date = new Date(timestamp * 1000);
+            var formattedDate = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' +
+                date.getFullYear() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+            return formattedDate
+        }
+        new Vue({
+            el: '#app',
+            data: {
+                status: 'Not connected',
+                socket: null,
+                channel: null,
+                subscriptions: []
+            },
+            mounted: function () {
+                this.init();
+            },
+            methods: {
+                unsubscribe: function (index, channel) {
+                    this.$delete(this.subscriptions, index)
+                    this.socket.emit('unsubscribe', channel.toUpperCase());
+                },
+
+                reconnect: function(){
+                    var self = this;
+                    this.subscriptions.forEach(sub => {
+                        self.socket.emit('subscribe', sub.channel.toUpperCase());
+                    });
+                },
+
+                subscribe: function () {
+                    this.subscriptions.push({
+                        channel: this.channel,
+                        quote: 'waiting..',
+                        timestamp: null
+                    })
+                    this.socket.emit('subscribe', this.channel.toUpperCase());
+                    this.channel = null;
+                },
+                init: function () {
+                    var self = this;
+                    this.socket = io("http://localhost:3000");
+                    this.socket.on("connected", (res) => {
+                        if (res.status) {
+                            self.status = 'Connected'
+                            self.reconnect();
+                        }
+
+                    });
+                    this.socket.on("currency", (res) => {
+                        console.log(res)
+                        self.subscriptions.forEach(sub => {
+                            if (sub.channel === res.channel) {
+                                sub.quote = res.quote;
+                                sub.timestamp = res.timestamp;
+                            }
+                        })
+                    })
+                }
+            }
+        })
+    </script>
+    <script>
+        //socket.on("currency", (message) => {
+        //   console.log(message)
+        //})
+    </script>
+</body>
+
 </html>
